@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -9,6 +9,7 @@ import {
 
 export default function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,9 +24,67 @@ export default function Navbar({ onMenuClick }) {
   // Auto-detect today's date using date-fns
   const formattedDate = format(new Date(), 'EEEE d MMMM yyyy', { locale: fr });
 
-  // Hardcoded title
-  const title = 'Tableau de bord';
-  const subtitle = formattedDate;
+  // Get dynamic title and subtitle based on route
+  const getPageInfo = () => {
+    const path = location.pathname;
+    
+    // Page titles and subtitles configuration
+    const pageConfig = {
+      '/dashboard': {
+        title: 'Tableau de bord',
+        subtitle: formattedDate
+      },
+      '/patients': {
+        title: 'Patients',
+        subtitle: '5 patients enregistrés'
+      },
+      '/rendez-vous': {
+        title: 'Rendez-vous',
+        subtitle: 'Gestion du calendrier'
+      },
+      '/dossiers': {
+        title: 'Dossiers médicaux',
+        subtitle: 'Gestion des dossiers patients'
+      },
+      '/ordonnances': {
+        title: 'Ordonnances',
+        subtitle: 'Créer et gérer les ordonnances'
+      },
+      '/medicaments': {
+        title: 'Médicaments',
+        subtitle: 'Base de données médicaments'
+      },
+      '/transactions': {
+        title: 'Transactions',
+        subtitle: 'Gestion financière'
+      },
+      '/parametres': {
+        title: 'Paramètres',
+        subtitle: 'Configuration du cabinet'
+      }
+    };
+
+    // Check if path matches any config key
+    if (pageConfig[path]) {
+      return pageConfig[path];
+    }
+
+    // Check for dynamic routes (like /dossiers/1)
+    if (path.startsWith('/dossiers/')) {
+      return {
+        title: 'Dossier médical',
+        subtitle: 'Consultation en cours'
+      };
+    }
+
+    // Default fallback
+    return {
+      title: 'Tableau de bord',
+      subtitle: formattedDate
+    };
+  };
+
+  const { title, subtitle } = getPageInfo();
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -165,7 +224,8 @@ export default function Navbar({ onMenuClick }) {
                   onClick={() => setShowDropdown(false)}
                 />
                 
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* User info */}
                   <div className="px-4 py-3 border-b border-slate-100">
                     <div className="font-medium text-[#1e3a5f] text-sm">
                       Dr. {doctor.prenom} {doctor.nom}

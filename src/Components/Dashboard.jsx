@@ -51,7 +51,7 @@ export default function Dashboard() {
   ];
   const formattedDate = `${days[today.getDay()]} ${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
 
-  // Sample data
+  // Stats data
   const stats = [
     {
       label: "Patients total",
@@ -87,6 +87,7 @@ export default function Dashboard() {
     },
   ];
 
+  // Sample data with proper status flow
   const todayAppointments = [
     {
       id: 1,
@@ -96,6 +97,8 @@ export default function Dashboard() {
       motif: "Consultation générale",
       status: "confirmé",
       statusColor: "bg-green-100 text-green-700",
+      queueNumber: 1,
+      statusOrder: 2,
     },
     {
       id: 2,
@@ -105,6 +108,8 @@ export default function Dashboard() {
       motif: "Suivi tension artérielle",
       status: "en_cours",
       statusColor: "bg-blue-100 text-blue-700",
+      queueNumber: 2,
+      statusOrder: 3,
     },
     {
       id: 3,
@@ -114,6 +119,8 @@ export default function Dashboard() {
       motif: "Diabète type 2 - contrôle",
       status: "en_attente",
       statusColor: "bg-amber-100 text-amber-700",
+      queueNumber: 3,
+      statusOrder: 1,
     },
     {
       id: 4,
@@ -123,8 +130,31 @@ export default function Dashboard() {
       motif: "Bilan sanguin",
       status: "en_attente",
       statusColor: "bg-amber-100 text-amber-700",
+      queueNumber: 4,
+      statusOrder: 1,
+    },
+    {
+      id: 5,
+      time: "11:00",
+      patient: "Kamel Aït Yahia",
+      initials: "KA",
+      motif: "Contrôle asthme",
+      status: "terminé",
+      statusColor: "bg-gray-100 text-gray-600",
+      queueNumber: 5,
+      statusOrder: 4,
     },
   ];
+
+  // Get next patient (first in queue that is not terminated)
+  const getNextPatient = () => {
+    const sorted = [...todayAppointments]
+      .filter(a => a.status !== 'terminé' && a.status !== 'annulé')
+      .sort((a, b) => a.queueNumber - b.queueNumber);
+    return sorted[0] || null;
+  };
+
+  const nextPatient = getNextPatient();
 
   const weekActivity = [
     { day: "Lun", count: 5, max: 5 },
@@ -174,17 +204,31 @@ export default function Dashboard() {
     return colors[status] || "text-gray-600 bg-gray-50";
   };
 
+  const getStatusText = (status) => {
+    const labels = {
+      en_attente: "En attente",
+      confirmé: "Confirmé",
+      en_cours: "En cours",
+      terminé: "Terminé",
+      annulé: "Annulé",
+    };
+    return labels[status] || status;
+  };
+
   return (
-    <div
-      className="space-y-6 fade-in"
-    
-    >
+    <div className="space-y-6 fade-in">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => {
+              if (stat.label === "Patients total") navigate("/patients");
+              else if (stat.label === "Rendez-vous aujourd'hui") navigate("/rendez-vous");
+              else if (stat.label === "Recettes ce mois") navigate("/transactions");
+              else if (stat.label === "Paiements en attente") navigate("/transactions");
+            }}
           >
             <div className="flex items-start justify-between mb-4">
               <div
@@ -227,8 +271,12 @@ export default function Dashboard() {
               <div
                 key={appt.id}
                 className="flex items-center gap-3 px-5 py-3 hover:bg-blue-50/40 transition-colors cursor-pointer"
-                onClick={() => navigate("/patients")}
+                onClick={() => navigate("/rendez-vous")}
               >
+                <div className="flex flex-col items-center min-w-12">
+                  <span className="text-[10px] text-slate-400">N°</span>
+                  <span className="text-xs font-bold text-blue-600">#{appt.queueNumber}</span>
+                </div>
                 <div className="text-xs font-semibold text-blue-600 w-12 flex-shrink-0">
                   {appt.time}
                 </div>
@@ -246,13 +294,7 @@ export default function Dashboard() {
                 <span
                   className={`text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0 ${appt.statusColor}`}
                 >
-                  {appt.status === "en_cours"
-                    ? "En cours"
-                    : appt.status === "en_attente"
-                      ? "En attente"
-                      : appt.status === "confirmé"
-                        ? "Confirmé"
-                        : appt.status}
+                  {getStatusText(appt.status)}
                 </span>
               </div>
             ))}
@@ -295,21 +337,38 @@ export default function Dashboard() {
                 Prochain patient
               </span>
             </div>
-            <div className="font-semibold text-lg">
-              {todayAppointments.find((a) => a.status === "en_attente")
-                ?.patient || "—"}
-            </div>
-            <div className="text-xs opacity-75 mt-1">
-              {todayAppointments.find((a) => a.status === "en_attente")?.time} ·
-              {todayAppointments.find((a) => a.status === "en_attente")
-                ?.motif || "Aucun patient en attente"}
-            </div>
-            <button
-              onClick={() => navigate("/patients")}
-              className="mt-4 w-full bg-white/20 hover:bg-white/30 transition-colors rounded-lg py-2 text-sm font-medium"
-            >
-              Commencer la consultation
-            </button>
+            {nextPatient ? (
+              <>
+                <div className="font-semibold text-lg">
+                  {nextPatient.patient}
+                </div>
+                <div className="text-xs opacity-75 mt-1">
+                  #{nextPatient.queueNumber} · {nextPatient.time} · {nextPatient.motif}
+                </div>
+                <div className="text-xs opacity-60 mt-1">
+                  Statut: {getStatusText(nextPatient.status)}
+                </div>
+                <button
+                  onClick={() => navigate("/rendez-vous")}
+                  className="mt-4 w-full bg-white/20 hover:bg-white/30 transition-colors rounded-lg py-2 text-sm font-medium"
+                >
+                  {nextPatient.status === 'en_cours' ? 'Continuer la consultation' : 'Commencer la consultation'}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="font-semibold text-lg">—</div>
+                <div className="text-xs opacity-75 mt-1">
+                  Aucun patient en attente
+                </div>
+                <button
+                  onClick={() => navigate("/rendez-vous")}
+                  className="mt-4 w-full bg-white/20 hover:bg-white/30 transition-colors rounded-lg py-2 text-sm font-medium"
+                >
+                  Voir les rendez-vous
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
