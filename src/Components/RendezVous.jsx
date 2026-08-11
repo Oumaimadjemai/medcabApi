@@ -5,7 +5,7 @@ import {
   User, Clock, Phone, MapPin, Mail, X, ChevronDown,
   Users, Calendar, Stethoscope, AlertCircle, CheckCircle2,
   Clock as ClockIcon, UserPlus, Edit2, Trash2, List,
-  Grid3x3
+  Grid3x3, Ban
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -516,23 +516,45 @@ export default function RendezVous() {
                       >
                         Démarrer
                       </button>
+                      <button 
+                        onClick={() => updateStatus(r.id, 'annulé')}
+                        className="px-2.5 py-1 border border-red-300 text-red-600 rounded-lg text-[10px] font-medium hover:bg-red-50 transition-colors"
+                      >
+                        Annuler
+                      </button>
                     </>
                   )}
                   {r.statut === 'confirmé' && (
-                    <button 
-                      onClick={() => updateStatus(r.id, 'en_cours')}
-                      className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Démarrer
-                    </button>
+                    <>
+                      <button 
+                        onClick={() => updateStatus(r.id, 'en_cours')}
+                        className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-medium hover:bg-blue-700 transition-colors"
+                      >
+                        Démarrer
+                      </button>
+                      <button 
+                        onClick={() => updateStatus(r.id, 'annulé')}
+                        className="px-2.5 py-1 border border-red-300 text-red-600 rounded-lg text-[10px] font-medium hover:bg-red-50 transition-colors"
+                      >
+                        Annuler
+                      </button>
+                    </>
                   )}
                   {r.statut === 'en_cours' && (
-                    <button 
-                      onClick={() => updateStatus(r.id, 'terminé')}
-                      className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-medium hover:bg-emerald-700 transition-colors"
-                    >
-                      Terminer
-                    </button>
+                    <>
+                      <button 
+                        onClick={() => updateStatus(r.id, 'terminé')}
+                        className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-medium hover:bg-emerald-700 transition-colors"
+                      >
+                        Terminer
+                      </button>
+                      <button 
+                        onClick={() => updateStatus(r.id, 'annulé')}
+                        className="px-2.5 py-1 border border-red-300 text-red-600 rounded-lg text-[10px] font-medium hover:bg-red-50 transition-colors"
+                      >
+                        Annuler
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => handleViewPatient(r.patientId)}
