@@ -6,6 +6,7 @@ import Dashboard from './Components/Dashboard';
 import Layout from './Components/Layout';
 import Patients from './Components/Patients';
 import RendezVous from './Components/RendezVous';
+import Dossiers from './Components/Dossiers';
 function App() {
   return (
     <BrowserRouter>
@@ -15,6 +16,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/patients" element={<Patients />} />
         <Route path="/rendez-vous" element={<RendezVous/>}/>
+        <Route path="/dossiers" element={<Dossiers/>} />
+        <Route path="/dossiers/:id" element={<Dossiers />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>  
