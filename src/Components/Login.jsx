@@ -1,23 +1,44 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Stethoscope, Lock, ChevronRight, User } from 'lucide-react';
-import {  useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
-    const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (!username || !password) {
+  const handleLogin = async () => {
+    // Validation
+    if (!email || !password) {
       setError('Veuillez remplir tous les champs');
       setTimeout(() => setError(''), 3000);
       return;
     }
-    // You can add your authentication logic here
-    // For demo purposes, we'll just pass the user object
-    navigate('/dashboard')
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const result = await login(email, password);
+      
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Email ou mot de passe incorrect');
+        setTimeout(() => setError(''), 3000);
+      }
+    } catch (err) {
+      setError('Une erreur est survenue');
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -40,16 +61,17 @@ export default function Login() {
           <div className="p-6">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Identifiants de connexion</p>
             
-            {/* Username field */}
+            {/* Email field */}
             <div className="relative mb-4">
               <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type="text"
-                value={username}
-                onChange={e => { setUsername(e.target.value); setError(''); }}
+                type="email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setError(''); }}
                 onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                placeholder="Nom d'utilisateur"
+                placeholder="Email"
                 className="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                disabled={isLoading}
               />
             </div>
 
@@ -63,8 +85,14 @@ export default function Login() {
                 onKeyDown={e => e.key === 'Enter' && handleLogin()}
                 placeholder="Mot de passe"
                 className="w-full pl-9 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                disabled={isLoading}
               />
-              <button onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button 
+                onClick={() => setShowPwd(!showPwd)} 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                type="button"
+                disabled={isLoading}
+              >
                 {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
@@ -73,14 +101,22 @@ export default function Login() {
 
             <button
               onClick={handleLogin}
-              disabled={!username || !password}
+              disabled={!email || !password || isLoading}
               className="w-full mt-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: 'linear-gradient(135deg, #1d6fd8, #3b82f6)' }}
             >
-              Se connecter
-              <ChevronRight size={16} />
+              {isLoading ? (
+                <>
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                  Connexion...
+                </>
+              ) : (
+                <>
+                  Se connecter
+                  <ChevronRight size={16} />
+                </>
+              )}
             </button>
-           
           </div>
         </div>
 
